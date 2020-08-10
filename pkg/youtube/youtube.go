@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // Client for downloading youtube videos
@@ -27,41 +29,44 @@ func (c Client) Download(w io.Writer, id string) error {
 		return err
 	}
 
-	b, err := json.MarshalIndent(p, "", "  ")
+	// b, err := json.MarshalIndent(p, "", "  ")
+	// if err != nil {
+	// 	return err
+	// }
+	// fmt.Println(string(b))
+
+	// s := make([]StreamFormat, len(p.StreamingData.Formats)+len(p.StreamingData.AdaptiveFormats))
+	var audio StreamFormat
+	var found bool
+	for _, s := range p.StreamingData.AdaptiveFormats {
+		if strings.HasPrefix(s.MimeType, "audio/mp4") {
+			audio = s.StreamFormat
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("audio format cannot be found")
+	}
+	if len(audio.URL) == 0 {
+		return fmt.Errorf("audio url cannot be empty")
+	}
+	log.Printf("audio url: %v\n", audio.URL)
+
+	length, err := getContentLength(audio.URL)
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(b))
 
-	// // s := make([]StreamFormat, len(p.StreamingData.Formats)+len(p.StreamingData.AdaptiveFormats))
-	// var audio StreamFormat
-	// var found bool
-	// for _, s := range p.StreamingData.AdaptiveFormats {
-	// 	if strings.HasPrefix(s.MimeType, "audio/mp4") {
-	// 		audio = s.StreamFormat
-	// 		found = true
-	// 		break
-	// 	}
-	// }
-	// if !found {
-	// 	return fmt.Errorf("audio format cannot be found")
-	// }
-	// log.Printf("audio url: %v\n", audio.URL)
+	resp, err := getStream(audio.URL, length)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
-	// length, err := getContentLength(audio.URL)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// resp, err := getStream(audio.URL, length)
-	// if err != nil {
-	// 	return err
-	// }
-	// defer resp.Body.Close()
-
-	// if _, err := io.Copy(w, resp.Body); err != nil {
-	// 	return err
-	// }
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		return err
+	}
 	return nil
 }
 
