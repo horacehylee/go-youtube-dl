@@ -23,7 +23,7 @@ func main() {
 	err = c.Download(f, vid)
 	checkError("Failed to download video", err)
 
-	fmt.Fprintf(os.Stdout, "Downloaded video at %v\n", f.Name())
+	fmt.Printf("Downloaded video at %v\n", f.Name())
 }
 
 func checkError(append string, err error) {

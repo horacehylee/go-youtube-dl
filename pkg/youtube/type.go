@@ -1,5 +1,7 @@
 package youtube
 
+import "fmt"
+
 // StreamFormat from youtube video info
 type StreamFormat struct {
 	Itag            int    `json:"itag"`
@@ -10,6 +12,16 @@ type StreamFormat struct {
 	AudioQuality    string `json:"audioQuality"`
 	AverageBitrate  int    `json:"averageBitrate"`
 	SignatureCipher string `json:"signatureCipher"`
+}
+
+func (s StreamFormat) getURL(videoID string) (string, error) {
+	if s.URL == "" && s.SignatureCipher == "" {
+		return "", fmt.Errorf("Both url and signature cipher is empty")
+	}
+	if s.URL != "" {
+		return s.URL, nil
+	}
+	return decryptCipher(videoID, s.SignatureCipher)
 }
 
 // PlayerResponse from youtube video info
@@ -37,48 +49,10 @@ type PlayerResponse struct {
 		ContextParams string `json:"contextParams"`
 	} `json:"playabilityStatus"`
 	StreamingData struct {
-		ExpiresInSeconds string `json:"expiresInSeconds"`
-		Formats          []struct {
-			StreamFormat
-			Bitrate          int    `json:"bitrate"`
-			Width            int    `json:"width"`
-			Height           int    `json:"height"`
-			LastModified     string `json:"lastModified"`
-			Fps              int    `json:"fps"`
-			QualityLabel     string `json:"qualityLabel"`
-			ProjectionType   string `json:"projectionType"`
-			ApproxDurationMs string `json:"approxDurationMs"`
-			AudioSampleRate  string `json:"audioSampleRate"`
-			AudioChannels    int    `json:"audioChannels"`
-		} `json:"formats"`
-		AdaptiveFormats []struct {
-			StreamFormat
-			Bitrate   int `json:"bitrate"`
-			Width     int `json:"width,omitempty"`
-			Height    int `json:"height,omitempty"`
-			InitRange struct {
-				Start string `json:"start"`
-				End   string `json:"end"`
-			} `json:"initRange"`
-			IndexRange struct {
-				Start string `json:"start"`
-				End   string `json:"end"`
-			} `json:"indexRange"`
-			LastModified     string `json:"lastModified"`
-			Fps              int    `json:"fps,omitempty"`
-			QualityLabel     string `json:"qualityLabel,omitempty"`
-			ProjectionType   string `json:"projectionType"`
-			ApproxDurationMs string `json:"approxDurationMs"`
-			ColorInfo        struct {
-				Primaries               string `json:"primaries"`
-				TransferCharacteristics string `json:"transferCharacteristics"`
-				MatrixCoefficients      string `json:"matrixCoefficients"`
-			} `json:"colorInfo,omitempty"`
-			HighReplication bool   `json:"highReplication,omitempty"`
-			AudioSampleRate string `json:"audioSampleRate,omitempty"`
-			AudioChannels   int    `json:"audioChannels,omitempty"`
-		} `json:"adaptiveFormats"`
-		ProbeURL string `json:"probeUrl"`
+		ExpiresInSeconds string         `json:"expiresInSeconds"`
+		Formats          []StreamFormat `json:"formats"`
+		AdaptiveFormats  []StreamFormat `json:"adaptiveFormats"`
+		ProbeURL         string         `json:"probeUrl"`
 	} `json:"streamingData"`
 	PlaybackTracking struct {
 		VideostatsPlaybackURL struct {

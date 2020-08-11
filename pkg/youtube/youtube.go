@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -36,29 +35,28 @@ func (c Client) Download(w io.Writer, id string) error {
 	// fmt.Println(string(b))
 
 	// s := make([]StreamFormat, len(p.StreamingData.Formats)+len(p.StreamingData.AdaptiveFormats))
-	var audio StreamFormat
-	var found bool
-	for _, s := range p.StreamingData.AdaptiveFormats {
-		if strings.HasPrefix(s.MimeType, "audio/mp4") {
-			audio = s.StreamFormat
-			found = true
-			break
-		}
-	}
-	if !found {
-		return fmt.Errorf("audio format cannot be found")
-	}
-	if len(audio.URL) == 0 {
-		return fmt.Errorf("audio url cannot be empty")
-	}
-	log.Printf("audio url: %v\n", audio.URL)
-
-	length, err := getContentLength(audio.URL)
+	audio, err := findStream(p.StreamingData.AdaptiveFormats, func(s StreamFormat) bool {
+		return strings.HasPrefix(s.MimeType, "audio/mp4")
+	})
 	if err != nil {
 		return err
 	}
 
-	resp, err := getStream(audio.URL, length)
+	url, err := audio.getURL(id)
+	if err != nil {
+		return err
+	}
+	if len(url) == 0 {
+		return fmt.Errorf("url cannot be empty")
+	}
+	fmt.Printf("url: %v\n", url)
+
+	length, err := getContentLength(url)
+	if err != nil {
+		return err
+	}
+
+	resp, err := getStreamContent(url, length)
 	if err != nil {
 		return err
 	}
@@ -127,8 +125,26 @@ func getContentLength(url string) (int64, error) {
 	return resp.ContentLength, nil
 }
 
-func getStream(url string, length int64) (*http.Response, error) {
-	req, err := http.NewRequest("GET", url, nil)
+type streamPredicate = func(s StreamFormat) bool
+
+func findStream(streams []StreamFormat, predicate streamPredicate) (StreamFormat, error) {
+	var stream StreamFormat
+	var found bool
+	for _, s := range streams {
+		if predicate(s) {
+			stream = s
+			found = true
+			break
+		}
+	}
+	if !found {
+		return StreamFormat{}, fmt.Errorf("stream cannot be found")
+	}
+	return stream, nil
+}
+
+func getStreamContent(url string, length int64) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
