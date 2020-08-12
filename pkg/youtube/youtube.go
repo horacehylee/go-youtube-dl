@@ -1,48 +1,30 @@
 package youtube
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"strings"
+
+	"github.com/horacehylee/go-youtube-dl/pkg/youtube/client"
+	"github.com/horacehylee/go-youtube-dl/pkg/youtube/decipher"
 )
 
-// Client for downloading youtube videos
-type Client struct {
-}
-
 // Download youtube video by video id
-func (c Client) Download(w io.Writer, id string) error {
-	v, err := getVideoInfo(id)
+func Download(w io.Writer, videoID string) error {
+	p, err := client.VideoPlayerInfo(videoID)
 	if err != nil {
 		return err
 	}
 
-	// fmt.Printf("%v\n", v["player_response"][0])
-
-	var p PlayerResponse
-	if err := json.Unmarshal([]byte(v["player_response"][0]), &p); err != nil {
-		return err
-	}
-
-	// b, err := json.MarshalIndent(p, "", "  ")
-	// if err != nil {
-	// 	return err
-	// }
-	// fmt.Println(string(b))
-
-	// s := make([]StreamFormat, len(p.StreamingData.Formats)+len(p.StreamingData.AdaptiveFormats))
-	audio, err := findStream(p.StreamingData.AdaptiveFormats, func(s StreamFormat) bool {
+	audioStreamFilter := func(s client.StreamFormat) bool {
 		return strings.HasPrefix(s.MimeType, "audio/mp4")
-	})
+	}
+	audio, err := findStream(p.StreamingData.AdaptiveFormats, audioStreamFilter)
 	if err != nil {
 		return err
 	}
 
-	url, err := audio.getURL(id)
+	url, err := getURL(videoID, audio)
 	if err != nil {
 		return err
 	}
@@ -51,84 +33,37 @@ func (c Client) Download(w io.Writer, id string) error {
 	}
 	fmt.Printf("url: %v\n", url)
 
-	length, err := getContentLength(url)
+	length, err := client.StreamLength(url)
 	if err != nil {
 		return err
 	}
 
-	resp, err := getStreamContent(url, length)
+	r, err := client.Stream(url, 0, length)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer r.Close()
 
-	if _, err := io.Copy(w, resp.Body); err != nil {
+	if _, err := io.Copy(w, r); err != nil {
 		return err
 	}
 	return nil
 }
 
-func getVideoInfo(id string) (url.Values, error) {
-	infoURL := fmt.Sprintf("https://youtube.com/get_video_info?video_id=%v&eurl=https://youtube.googleapis.com/v/%v", id, id)
-	resp, err := http.Get(infoURL)
-	if err != nil {
-		return nil, err
+func getURL(videoID string, s client.StreamFormat) (string, error) {
+	if s.URL == "" && s.SignatureCipher == "" {
+		return "", fmt.Errorf("Both url and signature cipher is empty")
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("get video info api returned: %v", resp.StatusCode)
+	if s.URL != "" {
+		return s.URL, nil
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	info := string(body)
-
-	p, err := url.ParseQuery(info)
-	if err != nil {
-		return nil, err
-	}
-	err = checkStatus(p)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
+	return decipher.DecryptStreamURL(videoID, s.SignatureCipher)
 }
 
-func checkStatus(v url.Values) error {
-	status, ok := v["status"]
-	if !ok {
-		return fmt.Errorf("no response status found in the server's answer")
-	}
-	if status[0] == "fail" {
-		reason, ok := v["reason"]
-		if ok {
-			return fmt.Errorf("'fail' response status found in the server's answer, reason: '%s'", reason[0])
-		}
-		return fmt.Errorf("'fail' response status found in the server's answer, no reason given")
-	}
-	if status[0] != "ok" {
-		return fmt.Errorf("non-success response status found in the server's answer (status: '%s')", status)
-	}
-	return nil
-}
+type streamPredicate = func(s client.StreamFormat) bool
 
-func getContentLength(url string) (int64, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return 0, nil
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("failed to get content length, status code returned: %v", resp.StatusCode)
-	}
-	return resp.ContentLength, nil
-}
-
-type streamPredicate = func(s StreamFormat) bool
-
-func findStream(streams []StreamFormat, predicate streamPredicate) (StreamFormat, error) {
-	var stream StreamFormat
+func findStream(streams []client.StreamFormat, predicate streamPredicate) (client.StreamFormat, error) {
+	var stream client.StreamFormat
 	var found bool
 	for _, s := range streams {
 		if predicate(s) {
@@ -138,25 +73,7 @@ func findStream(streams []StreamFormat, predicate streamPredicate) (StreamFormat
 		}
 	}
 	if !found {
-		return StreamFormat{}, fmt.Errorf("stream cannot be found")
+		return client.StreamFormat{}, fmt.Errorf("stream cannot be found")
 	}
 	return stream, nil
-}
-
-func getStreamContent(url string, length int64) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	// TODO: can split length into multiple goroutine to speed up http calls
-	req.Header.Set("range", fmt.Sprintf("bytes=0-%v", length))
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusPartialContent {
-		return nil, fmt.Errorf("failed to get stream, status code returned: %v", resp.StatusCode)
-	}
-	return resp, nil
 }

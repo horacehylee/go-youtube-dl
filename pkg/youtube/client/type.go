@@ -1,6 +1,4 @@
-package youtube
-
-import "fmt"
+package client
 
 // StreamFormat from youtube video info
 type StreamFormat struct {
@@ -12,16 +10,6 @@ type StreamFormat struct {
 	AudioQuality    string `json:"audioQuality"`
 	AverageBitrate  int    `json:"averageBitrate"`
 	SignatureCipher string `json:"signatureCipher"`
-}
-
-func (s StreamFormat) getURL(videoID string) (string, error) {
-	if s.URL == "" && s.SignatureCipher == "" {
-		return "", fmt.Errorf("Both url and signature cipher is empty")
-	}
-	if s.URL != "" {
-		return s.URL, nil
-	}
-	return decryptCipher(videoID, s.SignatureCipher)
 }
 
 // PlayerResponse from youtube video info

@@ -1,12 +1,13 @@
-package youtube
+package decipher
 
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/horacehylee/go-youtube-dl/pkg/youtube/client"
 )
 
 const (
@@ -15,8 +16,9 @@ const (
 	sigKey = "s"
 )
 
-func decryptCipher(videoID string, cipher string) (string, error) {
-	p, err := url.ParseQuery(cipher)
+//DecryptStreamURL is used for getting youtube url from signature cipher
+func DecryptStreamURL(videoID string, signatureCipher string) (string, error) {
+	p, err := url.ParseQuery(signatureCipher)
 	if err != nil {
 		return "", err
 	}
@@ -69,13 +71,7 @@ func swapOpFunc(p interface{}) decodeOp {
 }
 
 func decryptSignature(videoID string, sig string) (string, error) {
-	playerURL, err := getPlayerURL(videoID)
-	if err != nil {
-		return "", err
-	}
-	fmt.Printf("player url: %v\n", playerURL)
-
-	ops, err := getDecodeOps(playerURL)
+	ops, err := getDecodeOps(videoID)
 	if err != nil {
 		return "", err
 	}
@@ -94,15 +90,16 @@ var (
 	swapOpPattern    = regexp.MustCompile(`([a-zA-Z_\\$][a-zA-Z_0-9]*):function\(a,b\){var c=a\[0\];a\[0\]=a\[b%a\.length\];a\[b%a\.length\]=c}`)
 )
 
-func getDecodeOps(playerURL string) ([]decodeOp, error) {
+func getDecodeOps(videoID string) ([]decodeOp, error) {
 	var ops []decodeOp
-	resp, err := http.Get(playerURL)
+
+	r, err := client.PlayerJS(videoID)
 	if err != nil {
 		return ops, err
 	}
-	defer resp.Body.Close()
+	defer r.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := ioutil.ReadAll(r)
 	if err != nil {
 		return ops, err
 	}
@@ -130,7 +127,6 @@ func getDecodeOps(playerURL string) ([]decodeOp, error) {
 
 	ops = make([]decodeOp, len(opsStrings))
 	for i, opsString := range opsStrings {
-		fmt.Printf("ops string: %v\n", opsString)
 		f, err := parseJsFunction(opsString)
 		if err != nil {
 			return ops, err
@@ -152,30 +148,6 @@ func getOpFunc(ops map[string]decodeOpFunc, op decodeOpFunc, p *regexp.Regexp, b
 	k := string(matches[1])
 	ops[k] = op
 	return nil
-}
-
-var (
-	playerURLPattern = regexp.MustCompile(`<script.*src="(.*)".*name="player_ias/base".*></script>`)
-)
-
-func getPlayerURL(videoID string) (string, error) {
-	url := fmt.Sprintf("https://youtube.com/embed/%v?hl=en", videoID)
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	matches := playerURLPattern.FindSubmatch(b)
-	if matches == nil || len(matches) < 2 {
-		return "", fmt.Errorf("failed to find player url with pattern: %v", playerURLPattern)
-	}
-	return fmt.Sprintf("https://youtube.com%s", matches[1]), nil
 }
 
 func checkRequiredParam(v url.Values, k string) error {

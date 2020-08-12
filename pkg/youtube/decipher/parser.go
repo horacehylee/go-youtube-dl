@@ -1,4 +1,4 @@
-package youtube
+package decipher
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// JsFunction for decrypt operations function calls
-type JsFunction struct {
+// jsFunction for decrypt operations function calls
+type jsFunction struct {
 	name  string
 	param int
 }
@@ -17,8 +17,8 @@ var (
 	jsFuncPattern = regexp.MustCompile(`[^,()]+`) // not include variable a
 )
 
-func parseJsFunction(s string) (JsFunction, error) {
-	var f JsFunction
+func parseJsFunction(s string) (jsFunction, error) {
+	var f jsFunction
 	matches := jsFuncPattern.FindAllStringSubmatch(s, -1)
 	if matches == nil || len(matches) < 3 {
 		fmt.Println(matches[1])

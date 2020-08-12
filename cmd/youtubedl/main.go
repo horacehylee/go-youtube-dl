@@ -14,14 +14,14 @@ func main() {
 
 	vid := os.Args[1]
 
-	var c youtube.Client
-
 	f, err := os.Create(fmt.Sprintf("./%v.m4a", vid))
 	checkError("Failed to create file", err)
-	defer f.Close()
 
-	err = c.Download(f, vid)
+	err = youtube.Download(f, vid)
 	checkError("Failed to download video", err)
+
+	err = f.Close()
+	checkError("Failed to close the file", err)
 
 	fmt.Printf("Downloaded video at %v\n", f.Name())
 }
