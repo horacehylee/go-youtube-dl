@@ -56,11 +56,11 @@ func (d *Decipher) getDecryptOps(videoID string) ([]op.DecryptOp, error) {
 		if err != nil {
 			return ops, err
 		}
-		opsFunc, ok := registry.Get(f.name)
+		opsFunc, ok := registry.Get(f.Name)
 		if !ok {
-			return ops, fmt.Errorf("ops func cannot be found: %v", f.name)
+			return ops, fmt.Errorf("ops func cannot be found: %v", f.Name)
 		}
-		ops[i] = opsFunc(f.param)
+		ops[i] = opsFunc(f.Param)
 	}
 	return ops, nil
 }

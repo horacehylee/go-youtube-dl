@@ -40,7 +40,7 @@ func TestDecryptOps(t *testing.T) {
 		op := c.provider.DecryptOpFunc(c.param)
 		actual := op(c.input)
 		if !cmp.Equal(c.expected, actual) {
-			t.Fatal(cmp.Diff(c.expected, actual))
+			t.Error(cmp.Diff(c.expected, actual))
 		}
 	}
 }
@@ -67,22 +67,22 @@ func TestDecryptOps_FindFunctionName(t *testing.T) {
 
 	f, err := os.Open("testdata/player.txt")
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 	defer f.Close()
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	for _, c := range cases {
 		name, err := c.provider.FindFunctionNameFunc(b)
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 		if !cmp.Equal(c.expected, name) {
-			t.Fatal(cmp.Diff(c.expected, name))
+			t.Error(cmp.Diff(c.expected, name))
 		}
 	}
 }
@@ -90,17 +90,17 @@ func TestDecryptOps_FindFunctionName(t *testing.T) {
 func TestDecryptOps_UnknownJs_FindFunctionName(t *testing.T) {
 	f, err := os.Open("testdata/unknown_player.txt")
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 	defer f.Close()
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	_, err = ReverseOpFuncProvider.FindFunctionNameFunc(b)
 	if err == nil {
-		t.Fatal("error is not thrown")
+		t.Error("error is not thrown")
 	}
 }

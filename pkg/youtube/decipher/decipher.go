@@ -1,18 +1,24 @@
 package decipher
 
 import (
+	"io"
+
 	"github.com/go-playground/validator/v10"
-	"github.com/horacehylee/go-youtube-dl/pkg/youtube/client"
 )
+
+//go:generate moq -out decipher_test.go . youtubeClient
+type youtubeClient interface {
+	PlayerJS(videoID string) (io.ReadCloser, error)
+}
 
 // Decipher for Youtube API
 type Decipher struct {
 	validate *validator.Validate
-	client   *client.Client
+	client   youtubeClient
 }
 
 // NewDecipher returns new instance of decipher
-func NewDecipher(c *client.Client) *Decipher {
+func NewDecipher(c youtubeClient) *Decipher {
 	return &Decipher{
 		validate: validator.New(),
 		client:   c,
