@@ -28,9 +28,6 @@ func Download(c *client.Client, w io.Writer, videoID string) error {
 	if err != nil {
 		return err
 	}
-	if len(url) == 0 {
-		return fmt.Errorf("url cannot be empty")
-	}
 	fmt.Printf("url: %v\n", url)
 
 	length, err := c.StreamLength(url)
@@ -58,7 +55,14 @@ func getURL(c *client.Client, videoID string, s client.StreamFormat) (string, er
 		return s.URL, nil
 	}
 	d := decipher.NewDecipher(c)
-	return d.StreamURL(videoID, s.SignatureCipher)
+	url, err := d.StreamURL(videoID, s.SignatureCipher)
+	if err != nil {
+		return "", err
+	}
+	if url == "" {
+		return "", fmt.Errorf("url cannot be empty")
+	}
+	return url, nil
 }
 
 type streamPredicate = func(s client.StreamFormat) bool
