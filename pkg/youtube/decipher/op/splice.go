@@ -5,17 +5,10 @@ import "regexp"
 var spliceOpRegex = regexp.MustCompile(`([a-zA-Z_\\$][a-zA-Z_0-9]*):function\(a,b\){a\.splice\(0,b\)}`)
 
 // SpliceOpFuncProvider provide splice operations
-type SpliceOpFuncProvider struct {
-}
-
-// Regex needed for identify splice operation
-func (s SpliceOpFuncProvider) Regex() *regexp.Regexp {
-	return spliceOpRegex
-}
-
-// Provide splice DecryptOpFunc
-func (s SpliceOpFuncProvider) Provide() DecryptOpFunc {
-	return spliceOpFunc
+var SpliceOpFuncProvider = &DecryptOpFuncProvider{
+	Name:                 "splice",
+	FindFunctionNameFunc: findFunctionNameRegex("splice", spliceOpRegex),
+	DecryptOpFunc:        spliceOpFunc,
 }
 
 func spliceOpFunc(p interface{}) DecryptOp {

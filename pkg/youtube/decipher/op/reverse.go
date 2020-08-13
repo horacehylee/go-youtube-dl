@@ -5,17 +5,10 @@ import "regexp"
 var reverseOpRegex = regexp.MustCompile(`([a-zA-Z_\\$][a-zA-Z_0-9]*):function\(a\){a\.reverse\(\)}`)
 
 // ReverseOpFuncProvider provide reverse operations
-type ReverseOpFuncProvider struct {
-}
-
-// Regex needed for identify reverse operation
-func (r ReverseOpFuncProvider) Regex() *regexp.Regexp {
-	return reverseOpRegex
-}
-
-// Provide reverse DecryptOpFunc
-func (r ReverseOpFuncProvider) Provide() DecryptOpFunc {
-	return reverseOpFunc
+var ReverseOpFuncProvider = &DecryptOpFuncProvider{
+	Name:                 "reverse",
+	FindFunctionNameFunc: findFunctionNameRegex("reverse", reverseOpRegex),
+	DecryptOpFunc:        reverseOpFunc,
 }
 
 func reverseOpFunc(_ interface{}) DecryptOp {

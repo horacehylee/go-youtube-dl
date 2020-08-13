@@ -35,12 +35,14 @@ func (d *Decipher) getDecryptOps(videoID string) ([]op.DecryptOp, error) {
 		return ops, err
 	}
 
-	registry := newDecryptOpRegistry()
-	registry.register(op.ReverseOpFuncProvider{}, b)
-	registry.register(op.SwapOpFuncProvider{}, b)
-	registry.register(op.SpliceOpFuncProvider{}, b)
-	if registry.err != nil {
-		return ops, registry.err
+	registry := op.NewDecryptOpRegistry(
+		op.ReverseOpFuncProvider,
+		op.SpliceOpFuncProvider,
+		op.SwapOpFuncProvider,
+	)
+	err = registry.Load(b)
+	if err != nil {
+		return ops, err
 	}
 
 	opsStrings, err := getDecryptOpStrings(b)
@@ -54,7 +56,7 @@ func (d *Decipher) getDecryptOps(videoID string) ([]op.DecryptOp, error) {
 		if err != nil {
 			return ops, err
 		}
-		opsFunc, ok := registry.get(f.name)
+		opsFunc, ok := registry.Get(f.name)
 		if !ok {
 			return ops, fmt.Errorf("ops func cannot be found: %v", f.name)
 		}
@@ -76,34 +78,4 @@ func getDecryptOpStrings(b []byte) ([]string, error) {
 		return opsStrings, fmt.Errorf("empty decrypt ops")
 	}
 	return opsStrings, nil
-}
-
-type decryptOpRegistry struct {
-	// registry with key for function call name, and value as the decrypt op func
-	registry map[string]op.DecryptOpFunc
-	err      error
-}
-
-func newDecryptOpRegistry() *decryptOpRegistry {
-	return &decryptOpRegistry{
-		registry: make(map[string]op.DecryptOpFunc),
-	}
-}
-
-func (r *decryptOpRegistry) register(p op.DecryptOpFuncProvider, b []byte) {
-	if r.err != nil {
-		return
-	}
-	regex := p.Regex()
-	matches := regex.FindSubmatch(b)
-	if matches == nil || len(matches) < 2 {
-		r.err = fmt.Errorf("failed to find decrypt function with pattern: %v", regex.String())
-	}
-	key := string(matches[1])
-	r.registry[key] = p.Provide()
-}
-
-func (r *decryptOpRegistry) get(key string) (op.DecryptOpFunc, bool) {
-	opFunc, found := r.registry[key]
-	return opFunc, found
 }
