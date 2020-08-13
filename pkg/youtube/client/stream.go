@@ -7,8 +7,8 @@ import (
 )
 
 // StreamLength of the url provided
-func StreamLength(url string) (int64, error) {
-	resp, err := http.Get(url)
+func (c *Client) StreamLength(url string) (int64, error) {
+	resp, err := c.client.Get(url)
 	if err != nil {
 		return 0, nil
 	}
@@ -20,15 +20,14 @@ func StreamLength(url string) (int64, error) {
 }
 
 // Stream used for getting chunk of stream data
-func Stream(url string, from int64, to int64) (io.ReadCloser, error) {
+func (c *Client) Stream(url string, from int64, to int64) (io.ReadCloser, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 	// TODO: can split length into multiple goroutine to speed up http calls, each with around 2MB
 	req.Header.Set("range", fmt.Sprintf("bytes=%v-%v", from, to))
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}

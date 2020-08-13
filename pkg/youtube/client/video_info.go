@@ -9,23 +9,23 @@ import (
 )
 
 // VideoPlayerInfo provides player details
-func VideoPlayerInfo(videoID string) (*PlayerResponse, error) {
-	v, err := videoInfo(videoID)
+func (c *Client) VideoPlayerInfo(videoID string) (PlayerResponse, error) {
+	v, err := c.videoInfo(videoID)
 	if err != nil {
-		return nil, err
+		return PlayerResponse{}, err
 	}
 
 	var p PlayerResponse
 	if err := json.Unmarshal([]byte(v["player_response"][0]), &p); err != nil {
-		return nil, err
+		return PlayerResponse{}, err
 	}
-	return &p, nil
+	return p, nil
 }
 
 // videoInfo from youtube info API
-func videoInfo(videoID string) (url.Values, error) {
+func (c *Client) videoInfo(videoID string) (url.Values, error) {
 	infoURL := fmt.Sprintf("https://youtube.com/get_video_info?video_id=%v&eurl=https://youtube.googleapis.com/v/%v", videoID, videoID)
-	resp, err := http.Get(infoURL)
+	resp, err := c.client.Get(infoURL)
 	if err != nil {
 		return nil, err
 	}

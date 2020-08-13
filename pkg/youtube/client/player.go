@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"regexp"
 )
 
@@ -13,21 +12,21 @@ var (
 )
 
 // PlayerJS to fetch Javascript of player for video
-func PlayerJS(videoID string) (io.ReadCloser, error) {
-	playerURL, err := playerJsURL(videoID)
+func (c *Client) PlayerJS(videoID string) (io.ReadCloser, error) {
+	playerURL, err := c.playerJsURL(videoID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.Get(playerURL)
+	resp, err := c.client.Get(playerURL)
 	if err != nil {
 		return nil, err
 	}
 	return resp.Body, nil
 }
 
-func playerJsURL(videoID string) (string, error) {
+func (c *Client) playerJsURL(videoID string) (string, error) {
 	url := fmt.Sprintf("https://youtube.com/embed/%v?hl=en", videoID)
-	resp, err := http.Get(url)
+	resp, err := c.client.Get(url)
 	if err != nil {
 		return "", err
 	}

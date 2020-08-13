@@ -10,8 +10,8 @@ import (
 )
 
 // Download youtube video by video id
-func Download(w io.Writer, videoID string) error {
-	p, err := client.VideoPlayerInfo(videoID)
+func Download(c *client.Client, w io.Writer, videoID string) error {
+	p, err := c.VideoPlayerInfo(videoID)
 	if err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func Download(w io.Writer, videoID string) error {
 		return err
 	}
 
-	url, err := getURL(videoID, audio)
+	url, err := getURL(c, videoID, audio)
 	if err != nil {
 		return err
 	}
@@ -33,12 +33,12 @@ func Download(w io.Writer, videoID string) error {
 	}
 	fmt.Printf("url: %v\n", url)
 
-	length, err := client.StreamLength(url)
+	length, err := c.StreamLength(url)
 	if err != nil {
 		return err
 	}
 
-	r, err := client.Stream(url, 0, length)
+	r, err := c.Stream(url, 0, length)
 	if err != nil {
 		return err
 	}
@@ -50,14 +50,15 @@ func Download(w io.Writer, videoID string) error {
 	return nil
 }
 
-func getURL(videoID string, s client.StreamFormat) (string, error) {
+func getURL(c *client.Client, videoID string, s client.StreamFormat) (string, error) {
 	if s.URL == "" && s.SignatureCipher == "" {
 		return "", fmt.Errorf("Both url and signature cipher is empty")
 	}
 	if s.URL != "" {
 		return s.URL, nil
 	}
-	return decipher.DecryptStreamURL(videoID, s.SignatureCipher)
+	d := decipher.NewDecipher(c)
+	return d.StreamURL(videoID, s.SignatureCipher)
 }
 
 type streamPredicate = func(s client.StreamFormat) bool

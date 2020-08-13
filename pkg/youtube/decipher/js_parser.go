@@ -24,6 +24,7 @@ func parseJsFunction(s string) (jsFunction, error) {
 		fmt.Println(matches[1])
 		return f, fmt.Errorf("failed to parse JS function with pattern: %v", jsFuncPattern.String())
 	}
+
 	ss := strings.Split(matches[0][0], ".")
 	if len(ss) < 2 {
 		return f, fmt.Errorf("failed to split JS function name")
