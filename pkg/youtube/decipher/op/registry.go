@@ -1,5 +1,7 @@
 package op
 
+import "fmt"
+
 // DecryptOpRegistry with key for function call name, and value as the decrypt op func
 type DecryptOpRegistry struct {
 	registry  map[string]DecryptOpFunc
@@ -20,6 +22,9 @@ func (r *DecryptOpRegistry) Load(b []byte) error {
 		name, err := p.FindFunctionNameFunc(b)
 		if err != nil {
 			return err
+		}
+		if _, found := r.registry[name]; found {
+			return fmt.Errorf(`same name "%v" is used already, cannot be used for %v`, name, p.Name)
 		}
 		r.registry[name] = p.DecryptOpFunc
 	}

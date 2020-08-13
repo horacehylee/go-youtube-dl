@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/horacehylee/go-youtube-dl/pkg/youtube"
-	"github.com/horacehylee/go-youtube-dl/pkg/youtube/client"
 )
 
 func main() {
@@ -18,8 +17,8 @@ func main() {
 	f, err := os.Create(fmt.Sprintf("./%v.m4a", vid))
 	checkError("Failed to create file", err)
 
-	c := client.NewClient()
-	err = youtube.Download(c, f, vid)
+	downloader := youtube.NewDownloader()
+	err = downloader.DownloadAudio(vid, f)
 	checkError("Failed to download video", err)
 
 	err = f.Close()

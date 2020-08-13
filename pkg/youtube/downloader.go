@@ -9,9 +9,26 @@ import (
 	"github.com/horacehylee/go-youtube-dl/pkg/youtube/decipher"
 )
 
-// Download youtube video by video id
-func Download(c *client.Client, w io.Writer, videoID string) error {
-	p, err := c.VideoPlayerInfo(videoID)
+// Downloader for downloading Youtube videos
+type Downloader struct {
+	client *client.Client
+}
+
+// NewDownloader returns new instance of downloader
+func NewDownloader() *Downloader {
+	return &Downloader{
+		client: client.NewClient(),
+	}
+}
+
+// DownloadVideo of Youtube video with video ID
+func (d *Downloader) DownloadVideo(videoID string, w io.Writer) error {
+	return nil
+}
+
+// DownloadAudio of Youtube video with video ID
+func (d *Downloader) DownloadAudio(videoID string, w io.Writer) error {
+	p, err := d.client.VideoPlayerInfo(videoID)
 	if err != nil {
 		return err
 	}
@@ -24,38 +41,36 @@ func Download(c *client.Client, w io.Writer, videoID string) error {
 		return err
 	}
 
-	url, err := getURL(c, videoID, audio)
+	url, err := d.getURL(videoID, audio)
 	if err != nil {
 		return err
 	}
 	fmt.Printf("url: %v\n", url)
 
-	length, err := c.StreamLength(url)
+	length, err := d.client.StreamLength(url)
 	if err != nil {
 		return err
 	}
 
-	r, err := c.Stream(url, 0, length)
+	r, err := d.client.Stream(url, 0, length)
 	if err != nil {
 		return err
 	}
 	defer r.Close()
 
-	if _, err := io.Copy(w, r); err != nil {
-		return err
-	}
-	return nil
+	_, err = io.Copy(w, r)
+	return err
 }
 
-func getURL(c *client.Client, videoID string, s client.StreamFormat) (string, error) {
+func (d *Downloader) getURL(videoID string, s client.StreamFormat) (string, error) {
 	if s.URL == "" && s.SignatureCipher == "" {
 		return "", fmt.Errorf("Both url and signature cipher is empty")
 	}
 	if s.URL != "" {
 		return s.URL, nil
 	}
-	d := decipher.NewDecipher(c)
-	url, err := d.StreamURL(videoID, s.SignatureCipher)
+	cipher := decipher.NewDecipher(d.client)
+	url, err := cipher.StreamURL(videoID, s.SignatureCipher)
 	if err != nil {
 		return "", err
 	}
