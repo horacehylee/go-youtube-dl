@@ -26,6 +26,16 @@ func TestNewDecryptOpRegistry(t *testing.T) {
 	}
 }
 
+func TestDefaultDecryptOpRegistry(t *testing.T) {
+	r := DefaultDecryptOpRegistry()
+
+	expectedProviderCount := 3
+	actualProviderCount := len(r.providers)
+	if !cmp.Equal(expectedProviderCount, actualProviderCount) {
+		t.Error(cmp.Diff(expectedProviderCount, actualProviderCount))
+	}
+}
+
 func TestRegistryLoadAndGet(t *testing.T) {
 	r := NewDecryptOpRegistry(
 		ReverseOpFuncProvider,
