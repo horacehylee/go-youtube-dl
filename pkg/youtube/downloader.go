@@ -63,7 +63,6 @@ func (d *Downloader) DownloadAudio(videoID string, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-
 	bufWriter := bufio.NewWriterSize(w, int(streamChunkSize))
 	for _, b := range bytes {
 		bufWriter.Write(b)
