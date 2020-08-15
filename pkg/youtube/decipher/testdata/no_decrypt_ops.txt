@@ -1,0 +1,7 @@
+bv=function(a,b){a[b]||(a[b]=new Rfa);return a[b]};
+ev=function(a,b,c,d){!a&&(void 0===c?0:c)&&g.rr(Error("Player URL validator detects invalid url. "+(void 0===d?"":d)+": "+b));return a};
+fv=function(a,b){return b&&b.test(a)?!0:!1};
+hv=function(a){return(a=gv&&gv.exec(a))?a[0]:""};
+var cv={tX:function(a,b){a.splice(0,b)},
+yI:function(a){a.reverse()},
+aY:function(a,b){var c=a[0];a[0]=a[b%a.length];a[b%a.length]=c}};

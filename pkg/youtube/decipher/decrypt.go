@@ -35,11 +35,7 @@ func (d *Decipher) getDecryptOps(videoID string) ([]op.DecryptOp, error) {
 		return ops, err
 	}
 
-	registry := op.NewDecryptOpRegistry(
-		op.ReverseOpFuncProvider,
-		op.SpliceOpFuncProvider,
-		op.SwapOpFuncProvider,
-	)
+	registry := op.DefaultDecryptOpRegistry()
 	err = registry.Load(b)
 	if err != nil {
 		return ops, err
@@ -58,22 +54,23 @@ func (d *Decipher) getDecryptOps(videoID string) ([]op.DecryptOp, error) {
 		}
 		opsFunc, ok := registry.Get(f.Name)
 		if !ok {
-			return ops, fmt.Errorf("ops func cannot be found: %v", f.Name)
+			return ops, fmt.Errorf("ops function cannot be found: %v", f.Name)
 		}
 		ops[i] = opsFunc(f.Param)
 	}
 	return ops, nil
 }
 
-var decryptOpStringsPattern = regexp.MustCompile(`function\(a\){a=a\.split\(""\);(.*);return a\.join\(""\)}`)
+var decryptOpStringsPattern = regexp.MustCompile(`function\(a\){a=a\.split\(""\);(.*)return a\.join\(""\)}`)
 
 // getDecryptOpStrings splits function calls with ';' to list of calls
 func getDecryptOpStrings(b []byte) ([]string, error) {
 	matches := decryptOpStringsPattern.FindSubmatch(b)
 	if matches == nil || len(matches) < 2 {
-		return []string{}, fmt.Errorf("failed to find decrypt ops with pattern: %v", decryptOpStringsPattern)
+		return []string{}, fmt.Errorf("failed to find decrypt ops")
 	}
-	opsStrings := strings.Split(string(matches[1]), ";")
+	splits := strings.Split(string(matches[1]), ";")
+	opsStrings := splits[:len(splits)-1]
 	if len(opsStrings) == 0 {
 		return opsStrings, fmt.Errorf("empty decrypt ops")
 	}

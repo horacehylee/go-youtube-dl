@@ -24,7 +24,7 @@ func findFunctionNameRegex(name string, regex *regexp.Regexp) findFunctionNameFu
 	return func(b []byte) (string, error) {
 		matches := regex.FindSubmatch(b)
 		if matches == nil || len(matches) < 2 {
-			return "", fmt.Errorf("failed to find %v decrypt function with pattern: %v", name, regex.String())
+			return "", fmt.Errorf("failed to find %v decrypt function", name)
 		}
 		name := string(matches[1])
 		return name, nil

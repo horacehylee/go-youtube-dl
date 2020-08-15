@@ -8,6 +8,15 @@ type DecryptOpRegistry struct {
 	providers []*DecryptOpFuncProvider
 }
 
+// DefaultDecryptOpRegistry for default set of decrypt ops
+func DefaultDecryptOpRegistry() *DecryptOpRegistry {
+	return NewDecryptOpRegistry(
+		ReverseOpFuncProvider,
+		SpliceOpFuncProvider,
+		SwapOpFuncProvider,
+	)
+}
+
 // NewDecryptOpRegistry return new instance of registry
 func NewDecryptOpRegistry(providers ...*DecryptOpFuncProvider) *DecryptOpRegistry {
 	return &DecryptOpRegistry{
