@@ -15,7 +15,7 @@ func TestStreamUrl(t *testing.T) {
 			return os.Open("testdata/player.txt")
 		},
 	}
-	d := NewDecipher(mockClient)
+	d := New(mockClient)
 
 	videoID := "mKPbRIBCSHY"
 	signatureCipher := "s=jjfPoalCVG4gcJ1loAz6Pkktg2tVIbs5zniAx2t9hOLEIC41rU53hAGLmIMZVxFVkYBoNrhFfhF4kixh4AWYM7QnCgIARw8JQ0qOdd&sp=sig&url=https://testing.com?test=1234"
@@ -36,7 +36,7 @@ func TestStreamUrlFailed(t *testing.T) {
 			return os.Open("testdata/player.txt")
 		},
 	}
-	d := NewDecipher(mockClient)
+	d := New(mockClient)
 
 	videoID := "mKPbRIBCSHY"
 	signatureCiphers := []string{
@@ -65,7 +65,7 @@ func TestFailedFetchPlayerJs(t *testing.T) {
 	cases := []testCase{
 		{
 			name: "failed fetching player js",
-			decipher: NewDecipher(&youtubeClientMock{
+			decipher: New(&youtubeClientMock{
 				PlayerJSFunc: func(videoID string) (io.ReadCloser, error) {
 					return nil, errors.New("testing error")
 				},
@@ -74,7 +74,7 @@ func TestFailedFetchPlayerJs(t *testing.T) {
 		},
 		{
 			name: "failed to read player js",
-			decipher: NewDecipher(&youtubeClientMock{
+			decipher: New(&youtubeClientMock{
 				PlayerJSFunc: func(videoID string) (io.ReadCloser, error) {
 					r := &mockReadCloser{
 						ReadFunc: func(p []byte) (n int, err error) {
@@ -91,7 +91,7 @@ func TestFailedFetchPlayerJs(t *testing.T) {
 		},
 		{
 			name: "failed to read empty player js",
-			decipher: NewDecipher(&youtubeClientMock{
+			decipher: New(&youtubeClientMock{
 				PlayerJSFunc: func(videoID string) (io.ReadCloser, error) {
 					return getMockReadCloser([]byte("")), nil
 				},
@@ -100,7 +100,7 @@ func TestFailedFetchPlayerJs(t *testing.T) {
 		},
 		{
 			name: "failed to read player js with empty decrypt ops",
-			decipher: NewDecipher(&youtubeClientMock{
+			decipher: New(&youtubeClientMock{
 				PlayerJSFunc: func(videoID string) (io.ReadCloser, error) {
 					return os.Open("testdata/empty_decrypt_ops.txt")
 				},
@@ -109,7 +109,7 @@ func TestFailedFetchPlayerJs(t *testing.T) {
 		},
 		{
 			name: "failed to read player js with no decrypt ops",
-			decipher: NewDecipher(&youtubeClientMock{
+			decipher: New(&youtubeClientMock{
 				PlayerJSFunc: func(videoID string) (io.ReadCloser, error) {
 					return os.Open("testdata/no_decrypt_ops.txt")
 				},
@@ -118,7 +118,7 @@ func TestFailedFetchPlayerJs(t *testing.T) {
 		},
 		{
 			name: "failed to read player js with invalid decrypt function",
-			decipher: NewDecipher(&youtubeClientMock{
+			decipher: New(&youtubeClientMock{
 				PlayerJSFunc: func(videoID string) (io.ReadCloser, error) {
 					return os.Open("testdata/invalid_decrypt_function.txt")
 				},
@@ -127,7 +127,7 @@ func TestFailedFetchPlayerJs(t *testing.T) {
 		},
 		{
 			name: "failed to read player js with unknown decrypt op",
-			decipher: NewDecipher(&youtubeClientMock{
+			decipher: New(&youtubeClientMock{
 				PlayerJSFunc: func(videoID string) (io.ReadCloser, error) {
 					return os.Open("testdata/unknown_decrypt_ops.txt")
 				},

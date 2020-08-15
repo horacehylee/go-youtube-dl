@@ -25,7 +25,7 @@ type Downloader struct {
 // NewDownloader returns new instance of downloader
 func NewDownloader() *Downloader {
 	return &Downloader{
-		client: client.NewClient(),
+		client: client.New(),
 	}
 }
 
@@ -63,6 +63,7 @@ func (d *Downloader) DownloadAudio(videoID string, w io.Writer) error {
 	if err != nil {
 		return err
 	}
+
 	bufWriter := bufio.NewWriterSize(w, int(streamChunkSize))
 	for _, b := range bytes {
 		bufWriter.Write(b)
@@ -77,7 +78,7 @@ func (d *Downloader) getURL(videoID string, s client.StreamFormat) (string, erro
 	if s.URL != "" {
 		return s.URL, nil
 	}
-	cipher := decipher.NewDecipher(d.client)
+	cipher := decipher.New(d.client)
 	return cipher.StreamURL(videoID, s.SignatureCipher)
 }
 

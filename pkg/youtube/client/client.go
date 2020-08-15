@@ -7,8 +7,8 @@ type Client struct {
 	client *http.Client
 }
 
-// NewClient for Youtube APIs
-func NewClient() *Client {
+// New for Youtube APIs
+func New() *Client {
 	return &Client{
 		client: http.DefaultClient,
 	}
