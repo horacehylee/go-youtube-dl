@@ -17,7 +17,7 @@ type Decipher struct {
 	client   youtubeClient
 }
 
-// NewDecipher returns new instance of decipher
+// New returns new instance of decipher
 func New(c youtubeClient) *Decipher {
 	return &Decipher{
 		validate: validator.New(),

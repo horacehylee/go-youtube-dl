@@ -4,8 +4,7 @@ import "regexp"
 
 var spliceOpRegex = regexp.MustCompile(`([a-zA-Z_\\$][a-zA-Z_0-9]*):function\(a,b\){a\.splice\(0,b\)}`)
 
-// SpliceOpFuncProvider provide splice operations
-var SpliceOpFuncProvider = &DecryptOpFuncProvider{
+var spliceOpFuncProvider = &decryptOpFuncProvider{
 	Name:                 "splice",
 	FindFunctionNameFunc: findFunctionNameRegex("splice", spliceOpRegex),
 	DecryptOpFunc:        spliceOpFunc,

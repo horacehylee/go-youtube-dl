@@ -11,26 +11,26 @@ import (
 
 func TestDecryptOps(t *testing.T) {
 	type testCase struct {
-		provider *DecryptOpFuncProvider
+		provider *decryptOpFuncProvider
 		input    []byte
 		param    interface{}
 		expected []byte
 	}
 	cases := []testCase{
 		{
-			provider: ReverseOpFuncProvider,
+			provider: reverseOpFuncProvider,
 			input:    []byte{0x10, 0x20, 0x30, 0x40},
 			param:    rand.Int(),
 			expected: []byte{0x40, 0x30, 0x20, 0x10},
 		},
 		{
-			provider: SpliceOpFuncProvider,
+			provider: spliceOpFuncProvider,
 			input:    []byte{0x10, 0x20, 0x30, 0x40},
 			param:    2,
 			expected: []byte{0x30, 0x40},
 		},
 		{
-			provider: SwapOpFuncProvider,
+			provider: swapOpFuncProvider,
 			input:    []byte{0x10, 0x20, 0x30, 0x40},
 			param:    2,
 			expected: []byte{0x30, 0x20, 0x10, 0x40},
@@ -47,20 +47,20 @@ func TestDecryptOps(t *testing.T) {
 
 func TestDecryptOps_FindFunctionName(t *testing.T) {
 	type testCase struct {
-		provider *DecryptOpFuncProvider
+		provider *decryptOpFuncProvider
 		expected string
 	}
 	cases := []testCase{
 		{
-			provider: ReverseOpFuncProvider,
+			provider: reverseOpFuncProvider,
 			expected: "ch",
 		},
 		{
-			provider: SpliceOpFuncProvider,
+			provider: spliceOpFuncProvider,
 			expected: "ox",
 		},
 		{
-			provider: SwapOpFuncProvider,
+			provider: swapOpFuncProvider,
 			expected: "EQ",
 		},
 	}
@@ -99,7 +99,7 @@ func TestDecryptOps_UnknownJs_FindFunctionName(t *testing.T) {
 		t.Error(err)
 	}
 
-	_, err = ReverseOpFuncProvider.FindFunctionNameFunc(b)
+	_, err = reverseOpFuncProvider.FindFunctionNameFunc(b)
 	if err == nil {
 		t.Error("error is not thrown")
 	}

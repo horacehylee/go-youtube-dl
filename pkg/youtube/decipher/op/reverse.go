@@ -4,8 +4,7 @@ import "regexp"
 
 var reverseOpRegex = regexp.MustCompile(`([a-zA-Z_\\$][a-zA-Z_0-9]*):function\(a\){a\.reverse\(\)}`)
 
-// ReverseOpFuncProvider provide reverse operations
-var ReverseOpFuncProvider = &DecryptOpFuncProvider{
+var reverseOpFuncProvider = &decryptOpFuncProvider{
 	Name:                 "reverse",
 	FindFunctionNameFunc: findFunctionNameRegex("reverse", reverseOpRegex),
 	DecryptOpFunc:        reverseOpFunc,

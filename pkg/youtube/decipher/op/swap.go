@@ -4,8 +4,7 @@ import "regexp"
 
 var swapOpRegex = regexp.MustCompile(`([a-zA-Z_\\$][a-zA-Z_0-9]*):function\(a,b\){var c=a\[0\];a\[0\]=a\[b%a\.length\];a\[b%a\.length\]=c}`)
 
-// SwapOpFuncProvider provide swap operations
-var SwapOpFuncProvider = &DecryptOpFuncProvider{
+var swapOpFuncProvider = &decryptOpFuncProvider{
 	Name:                 "swap",
 	FindFunctionNameFunc: findFunctionNameRegex("swap", swapOpRegex),
 	DecryptOpFunc:        swapOpFunc,

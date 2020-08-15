@@ -8,13 +8,12 @@ import (
 // DecryptOp manipulates byte slice for decryption
 type DecryptOp func(b []byte) []byte
 
-// DecryptOpFunc returns decrypt operations with param provided
+// DecryptOpFunc is a function with parameter for a decrypt operation.
 type DecryptOpFunc func(p interface{}) DecryptOp
 
 type findFunctionNameFunc func(b []byte) (string, error)
 
-// DecryptOpFuncProvider describes a DecryptOpFunc
-type DecryptOpFuncProvider struct {
+type decryptOpFuncProvider struct {
 	Name                 string
 	FindFunctionNameFunc findFunctionNameFunc
 	DecryptOpFunc        DecryptOpFunc

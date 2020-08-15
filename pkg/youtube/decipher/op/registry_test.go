@@ -10,8 +10,8 @@ import (
 )
 
 func TestNewDecryptOpRegistry(t *testing.T) {
-	provider := ReverseOpFuncProvider
-	r := NewDecryptOpRegistry(provider)
+	provider := reverseOpFuncProvider
+	r := newDecryptOpRegistry(provider)
 
 	expectedProviderCount := 1
 	actualProviderCount := len(r.providers)
@@ -37,8 +37,8 @@ func TestDefaultDecryptOpRegistry(t *testing.T) {
 }
 
 func TestRegistryLoadAndGet(t *testing.T) {
-	r := NewDecryptOpRegistry(
-		ReverseOpFuncProvider,
+	r := newDecryptOpRegistry(
+		reverseOpFuncProvider,
 	)
 	f, err := os.Open("testdata/player.txt")
 	if err != nil {
@@ -67,9 +67,9 @@ func TestRegistryLoadAndGet(t *testing.T) {
 }
 
 func TestRegistryDuplicateProvider(t *testing.T) {
-	r := NewDecryptOpRegistry(
-		ReverseOpFuncProvider,
-		ReverseOpFuncProvider,
+	r := newDecryptOpRegistry(
+		reverseOpFuncProvider,
+		reverseOpFuncProvider,
 	)
 	f, err := os.Open("testdata/player.txt")
 	if err != nil {
@@ -88,13 +88,13 @@ func TestRegistryDuplicateProvider(t *testing.T) {
 }
 
 func TestRegistryProviderFindFunctionNameFailed(t *testing.T) {
-	provider := &DecryptOpFuncProvider{
+	provider := &decryptOpFuncProvider{
 		Name: "testing",
 		FindFunctionNameFunc: func(b []byte) (string, error) {
 			return "", errors.New("testing error")
 		},
 	}
-	r := NewDecryptOpRegistry(
+	r := newDecryptOpRegistry(
 		provider,
 	)
 	f, err := os.Open("testdata/player.txt")

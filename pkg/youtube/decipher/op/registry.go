@@ -5,20 +5,19 @@ import "fmt"
 // DecryptOpRegistry with key for function call name, and value as the decrypt op func
 type DecryptOpRegistry struct {
 	registry  map[string]DecryptOpFunc
-	providers []*DecryptOpFuncProvider
+	providers []*decryptOpFuncProvider
 }
 
 // DefaultDecryptOpRegistry for default set of decrypt ops
 func DefaultDecryptOpRegistry() *DecryptOpRegistry {
-	return NewDecryptOpRegistry(
-		ReverseOpFuncProvider,
-		SpliceOpFuncProvider,
-		SwapOpFuncProvider,
+	return newDecryptOpRegistry(
+		reverseOpFuncProvider,
+		spliceOpFuncProvider,
+		swapOpFuncProvider,
 	)
 }
 
-// NewDecryptOpRegistry return new instance of registry
-func NewDecryptOpRegistry(providers ...*DecryptOpFuncProvider) *DecryptOpRegistry {
+func newDecryptOpRegistry(providers ...*decryptOpFuncProvider) *DecryptOpRegistry {
 	return &DecryptOpRegistry{
 		registry:  make(map[string]DecryptOpFunc, len(providers)),
 		providers: providers,
