@@ -11,7 +11,7 @@ Golang implementation for downloading youtube videos
 ## Install
 
 ```
-go get github.com/horacehylee/go-youtube-dl
+go install github.com/horacehylee/go-youtube-dl
 ```
 
 ## Example
